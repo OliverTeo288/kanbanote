@@ -1,0 +1,31 @@
+{
+  "compilerOptions": {
+    // Emit
+    "inlineSourceMap": true,
+    "inlineSources": true,
+    "outDir": "dist",
+
+    // Module
+    "module": "ESNext",
+    "target": "ES2018",
+    "moduleResolution": "bundler",
+    "importHelpers": true,
+    "isolatedModules": true,
+
+    // Strict — enables: strictNullChecks, noImplicitAny, strictFunctionTypes,
+    // strictBindCallApply, strictPropertyInitialization, noImplicitThis,
+    // alwaysStrict, useUnknownInCatchVariables
+    "strict": true,
+
+    // Additional checks beyond strict
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitReturns": true,
+    "allowSyntheticDefaultImports": true,
+
+    "lib": ["DOM", "ES2021"],
+    "types": ["node"]
+  },
+  "include": ["src/**/*.ts"]
+}

@@ -1,0 +1,34 @@
+{
+  "name": "obsidian-kanban",
+  "version": "1.0.0",
+  "description": "Kanban board plugin for Obsidian — boards, columns, and cards like Trello/Jira",
+  "engines": {
+    "node": ">=25"
+  },
+  "scripts": {
+    "dev": "node esbuild.config.mjs --watch",
+    "build": "tsc --noEmit --skipLibCheck && node esbuild.config.mjs production",
+    "clean": "rimraf main.js",
+    "typecheck": "tsc --noEmit --skipLibCheck",
+    "lint": "eslint src/",
+    "lint:fix": "eslint src/ --fix",
+    "audit": "npm audit --audit-level=high",
+    "validate": "npm run typecheck && npm run lint && npm run audit"
+  },
+  "keywords": [],
+  "author": "OliverTeo288",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "25.6.0",
+    "@typescript-eslint/eslint-plugin": "8.59.1",
+    "@typescript-eslint/parser": "8.59.1",
+    "esbuild": "0.28.0",
+    "eslint": "10.2.1",
+    "eslint-plugin-obsidianmd": "0.2.9",
+    "eslint-plugin-security": "4.0.0",
+    "obsidian": "1.5.7",
+    "rimraf": "6.0.1",
+    "tslib": "2.6.3",
+    "typescript": "6.0.3"
+  }
+}
