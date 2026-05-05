@@ -1,0 +1,179 @@
+name: Dependency & Security Scan
+
+# Runs daily at 02:00 UTC and on every push to main.
+# Checks for: vulnerable npm packages, hardcoded secrets, licence compliance.
+# Results surface as GitHub Actions step summaries and annotations.
+
+on:
+  schedule:
+    - cron: "0 2 * * *"   # 02:00 UTC daily
+  push:
+    branches: [main]
+  workflow_dispatch:       # allow manual trigger
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  npm-audit:
+    name: npm audit
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e  # v6.4.0
+        with:
+          node-version: "25"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: npm audit (high + critical)
+        id: audit
+        run: |
+          set +e
+          npm audit --audit-level=high --json > audit.json 2>&1
+          AUDIT_EXIT=$?
+          set -e
+
+          # Emit inline annotations for each vulnerability
+          node -e "
+            const raw = require('fs').readFileSync('audit.json','utf8');
+            let report;
+            try { report = JSON.parse(raw); } catch { process.exit(0); }
+            const vulns = report.vulnerabilities ?? {};
+            let high = 0, critical = 0;
+            for (const [name, v] of Object.entries(vulns)) {
+              if (v.severity === 'high')     high++;
+              if (v.severity === 'critical') critical++;
+              const sev = ['high','critical'].includes(v.severity) ? 'error' : 'warning';
+              process.stdout.write(\`::\${sev}::\${name} [\${v.severity}] \${v.via?.[0]?.title ?? v.title ?? ''}\n\`);
+            }
+            console.log(\`npm audit: \${critical} critical, \${high} high\`);
+          "
+
+          # Write step summary
+          {
+            echo "### npm audit"
+            echo ""
+            echo '```'
+            npm audit --audit-level=high 2>&1 || true
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          exit $AUDIT_EXIT
+
+      - name: npm outdated (informational)
+        if: always()
+        run: |
+          {
+            echo "### Outdated packages"
+            echo ""
+            echo '```'
+            npm outdated || true
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  trivy-scan:
+    name: Trivy — vuln · secrets · licence
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+
+      - name: Install Trivy
+        run: |
+          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh \
+            | sh -s -- -b /usr/local/bin
+
+      # ── Vulnerability scan ────────────────────────────────────────────────
+
+      # --include-dev-deps: Obsidian plugins ship zero prod deps (everything is bundled
+      # at build time and `obsidian` is marked external), so all deps are devDependencies.
+      # Without this flag Trivy would scan nothing.
+      - name: Trivy vulnerability scan (HIGH + CRITICAL)
+        id: trivy-vuln
+        run: |
+          trivy fs . \
+            --scanners vuln \
+            --include-dev-deps \
+            --severity HIGH,CRITICAL \
+            --exit-code 1 \
+            --format table \
+            --output trivy-vuln.txt \
+            2>&1 || TRIVY_EXIT=$?
+
+          {
+            echo "### Trivy vulnerability scan"
+            echo ""
+            echo '```'
+            cat trivy-vuln.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          exit ${TRIVY_EXIT:-0}
+
+      # ── Secret scan ───────────────────────────────────────────────────────
+
+      - name: Trivy secret scan
+        id: trivy-secrets
+        if: always()
+        run: |
+          trivy fs . \
+            --scanners secret \
+            --exit-code 1 \
+            --format table \
+            --output trivy-secrets.txt \
+            2>&1 || TRIVY_EXIT=$?
+
+          {
+            echo "### Trivy secret scan"
+            echo ""
+            echo '```'
+            cat trivy-secrets.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          exit ${TRIVY_EXIT:-0}
+
+      # ── Licence scan ──────────────────────────────────────────────────────
+
+      - name: Trivy licence scan
+        if: always()
+        run: |
+          # Flag licences that are incompatible with MIT / plugin distribution
+          trivy fs . \
+            --scanners license \
+            --include-dev-deps \
+            --license-full \
+            --exit-code 0 \
+            --format table \
+            --output trivy-licences.txt \
+            2>&1 || true
+
+          {
+            echo "### Trivy licence scan"
+            echo ""
+            echo '```'
+            cat trivy-licences.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # ── Upload scan artefacts ─────────────────────────────────────────────
+
+      - name: Upload Trivy reports
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
+        with:
+          name: trivy-reports
+          path: |
+            trivy-vuln.txt
+            trivy-secrets.txt
+            trivy-licences.txt
+          retention-days: 14
