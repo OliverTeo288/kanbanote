@@ -2,8 +2,8 @@
   "id": "obsidban",
   "name": "Obsidban",
   "version": "1.0.0",
-  "minAppVersion": "1.4.0",
-  "description": "Kanban boards in Obsidian — organise work into columns and cards like Trello or Jira.",
+  "minAppVersion": "1.5.0",
+  "description": "Trello/Jira-style Kanban boards. Organise work into columns and cards with drag-and-drop, checklists, links, and live search.",
   "author": "OliverTeo288",
   "authorUrl": "https://github.com/OliverTeo288",
   "isDesktopOnly": false
