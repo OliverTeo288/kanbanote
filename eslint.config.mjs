@@ -45,15 +45,13 @@ export default [
       "@typescript-eslint/no-explicit-any": "error",
       "@typescript-eslint/no-unnecessary-type-assertion": "error",
       "@typescript-eslint/no-base-to-string": "error",
-      // Obsidian's Plugin lifecycle methods (onload, onunload) are typed as
-      // void, but async onload() is the established pattern for plugins that
-      // need to await setup. inheritedMethods:false allows this without
-      // per-line suppressions while still catching misuse elsewhere.
-      "@typescript-eslint/no-misused-promises": ["error", {
-        "checksVoidReturn": { "inheritedMethods": false },
-      }],
+      // Strict — matches the Obsidian community plugin reviewer's config.
+      // Catches `async onload()` (Plugin.onload is typed void) and similar
+      // mismatches between override signatures and parent types.
+      "@typescript-eslint/no-misused-promises": "error",
       "@typescript-eslint/no-floating-promises": "error",
       "@typescript-eslint/await-thenable": "error",
+      "@typescript-eslint/require-await": "error",
       "@typescript-eslint/no-unsafe-assignment": "error",
       "@typescript-eslint/no-unsafe-call": "error",
       "@typescript-eslint/no-unsafe-member-access": "error",

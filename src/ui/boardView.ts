@@ -35,8 +35,10 @@ export class KanbanBoardView extends ItemView {
   getDisplayText(): string { return "Kanban board"; }
   getIcon(): string        { return "table-2"; }
 
-  async onOpen(): Promise<void>  { this.render(); }
-  async onClose(): Promise<void> { /* nothing to tear down */ }
+  // ItemView.onOpen/onClose are typed as Promise<void>; we return a resolved
+  // Promise without `async` because there's no real async work to await.
+  onOpen(): Promise<void>  { this.render(); return Promise.resolve(); }
+  onClose(): Promise<void> { return Promise.resolve(); }
 
   // ── Render entry ─────────────────────────────────────────────────────────
 

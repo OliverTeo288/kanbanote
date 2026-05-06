@@ -18,8 +18,17 @@ export default class KanbanPlugin extends Plugin {
 
   // ── Lifecycle ─────────────────────────────────────────────────────────────
 
-  async onload() {
-    await this.loadAll();
+  /**
+   * Plugin entry point. Synchronous to satisfy `Plugin.onload(): void`.
+   * Sync registrations run first, then `hydrate()` loads persisted data in the
+   * background. Views read state via `this.plugin.store` lookups at render
+   * time, so the placeholder store created here is safely replaced once
+   * hydration completes.
+   */
+  onload(): void {
+    // Synchronous defaults — overwritten by hydrate() once disk read completes.
+    this.settings = { ...DEFAULT_SETTINGS };
+    this.store    = new BoardStore([], () => void this.persistBoards());
 
     this.registerView(KANBAN_VIEW_TYPE, (leaf) => new KanbanBoardView(leaf, this));
 
@@ -43,9 +52,12 @@ export default class KanbanPlugin extends Plugin {
     });
 
     this.addSettingTab(new KanbanSettingTab(this.app, this));
+
+    // Async hydration — fire-and-forget; refreshViews() updates any open views.
+    void this.hydrate();
   }
 
-  onunload() { /* nothing to tear down */ }
+  onunload(): void { /* nothing to tear down */ }
 
   // ── View activation ───────────────────────────────────────────────────────
 
@@ -73,16 +85,19 @@ export default class KanbanPlugin extends Plugin {
   /**
    * Load settings from plugin storage (.obsidian/plugins/obsidban/data.json)
    * then load boards from the vault data file (kanban/boards.json by default).
+   * Replaces the placeholder store created in onload() and re-renders any
+   * open views so they pick up the loaded data.
    *
    * Settings stay in plugin storage so they are device-local and not synced.
    * Board data lives in the vault so S3sync picks it up automatically.
    */
-  private async loadAll(): Promise<void> {
+  private async hydrate(): Promise<void> {
     const pluginData = (await this.loadData()) as Partial<KanbanPluginData> | null;
     this.settings = { ...DEFAULT_SETTINGS, ...(pluginData?.settings ?? {}) };
 
     const boards = await this.readVaultFile();
     this.store = new BoardStore(boards, () => void this.persistBoards());
+    this.refreshViews();
   }
 
   /** Write board data to the vault file so S3sync can sync it. */
