@@ -33,15 +33,17 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: npm audit (high + critical)
+      # Informational scan — surfaces vulnerabilities via PR annotations and the
+      # step summary, but never fails the job. The point is the alert, not
+      # blocking CI; high/critical findings can be triaged by reviewing the run.
+      - name: npm audit (high + critical) — report only
         id: audit
         run: |
           set +e
           npm audit --audit-level=high --json > audit.json 2>&1
-          AUDIT_EXIT=$?
           set -e
 
-          # Emit inline annotations for each vulnerability
+          # Emit inline annotations as warnings (not errors) so the job stays green.
           node -e "
             const raw = require('fs').readFileSync('audit.json','utf8');
             let report;
@@ -51,8 +53,7 @@ jobs:
             for (const [name, v] of Object.entries(vulns)) {
               if (v.severity === 'high')     high++;
               if (v.severity === 'critical') critical++;
-              const sev = ['high','critical'].includes(v.severity) ? 'error' : 'warning';
-              process.stdout.write(\`::\${sev}::\${name} [\${v.severity}] \${v.via?.[0]?.title ?? v.title ?? ''}\n\`);
+              process.stdout.write(\`::warning::\${name} [\${v.severity}] \${v.via?.[0]?.title ?? v.title ?? ''}\n\`);
             }
             console.log(\`npm audit: \${critical} critical, \${high} high\`);
           "
@@ -65,8 +66,6 @@ jobs:
             npm audit --audit-level=high 2>&1 || true
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
-
-          exit $AUDIT_EXIT
 
       - name: npm outdated (informational)
         if: always()

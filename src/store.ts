@@ -1,5 +1,5 @@
 import { nanoid } from "./utils";
-import type { ActivityEntry, Board, Card, ChecklistItem, Column } from "./types";
+import type { ActivityEntry, Board, Card, Column } from "./types";
 
 export class BoardStore {
   private boards: Board[];
@@ -144,62 +144,9 @@ export class BoardStore {
     this.onChange();
   }
 
-  // ── Checklist ─────────────────────────────────────────────────────────────
-
-  addChecklistItem(boardId: string, columnId: string, cardId: string, text: string): ChecklistItem {
-    const card = this.requireCard(boardId, columnId, cardId);
-    const item: ChecklistItem = { id: nanoid(), text: text.trim(), checked: false };
-    card.checklist.push(item);
-    card.activity.push(makeActivity("checklist", `Added checklist item: "${item.text}"`));
-    card.updatedAt = new Date().toISOString();
-    this.requireBoard(boardId).updatedAt = card.updatedAt;
-    this.onChange();
-    return item;
-  }
-
-  toggleChecklistItem(boardId: string, columnId: string, cardId: string, itemId: string): void {
-    const card = this.requireCard(boardId, columnId, cardId);
-    const item = card.checklist.find((i) => i.id === itemId);
-    if (!item) return;
-    item.checked = !item.checked;
-    card.activity.push(makeActivity("checklist", `${item.checked ? "Checked" : "Unchecked"}: "${item.text}"`));
-    card.updatedAt = new Date().toISOString();
-    this.requireBoard(boardId).updatedAt = card.updatedAt;
-    this.onChange();
-  }
-
-  deleteChecklistItem(boardId: string, columnId: string, cardId: string, itemId: string): void {
-    const card = this.requireCard(boardId, columnId, cardId);
-    const item = card.checklist.find((i) => i.id === itemId);
-    card.checklist = card.checklist.filter((i) => i.id !== itemId);
-    if (item) {
-      card.activity.push(makeActivity("checklist", `Removed checklist item: "${item.text}"`));
-    }
-    card.updatedAt = new Date().toISOString();
-    this.requireBoard(boardId).updatedAt = card.updatedAt;
-    this.onChange();
-  }
-
-  // ── Attachments ───────────────────────────────────────────────────────────
-
-  addAttachment(boardId: string, columnId: string, cardId: string, path: string): void {
-    const card = this.requireCard(boardId, columnId, cardId);
-    if (card.attachments.includes(path)) return;
-    card.attachments.push(path);
-    card.activity.push(makeActivity("attachment", `Linked: "${path}"`));
-    card.updatedAt = new Date().toISOString();
-    this.requireBoard(boardId).updatedAt = card.updatedAt;
-    this.onChange();
-  }
-
-  removeAttachment(boardId: string, columnId: string, cardId: string, path: string): void {
-    const card = this.requireCard(boardId, columnId, cardId);
-    card.attachments = card.attachments.filter((a) => a !== path);
-    card.activity.push(makeActivity("attachment", `Removed link: "${path}"`));
-    card.updatedAt = new Date().toISOString();
-    this.requireBoard(boardId).updatedAt = card.updatedAt;
-    this.onChange();
-  }
+  // Note: per-checklist-item and per-attachment mutations are intentionally
+  // not exposed. The card modal manages those in local state and persists the
+  // full card via updateCard() on Save — keeping the store API minimal.
 
   // ── Internal helpers ──────────────────────────────────────────────────────
 

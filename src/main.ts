@@ -92,19 +92,25 @@ export default class KanbanPlugin extends Plugin {
    * Board data lives in the vault so S3sync picks it up automatically.
    */
   private async hydrate(): Promise<void> {
-    const pluginData = (await this.loadData()) as Partial<KanbanPluginData> | null;
-    this.settings = { ...DEFAULT_SETTINGS, ...(pluginData?.settings ?? {}) };
+    try {
+      const pluginData = (await this.loadData()) as Partial<KanbanPluginData> | null;
+      this.settings = { ...DEFAULT_SETTINGS, ...(pluginData?.settings ?? {}) };
 
-    const boards = await this.readVaultFile();
-    this.store = new BoardStore(boards, () => void this.persistBoards());
-    this.refreshViews();
+      const boards = await this.readVaultFile();
+      this.store = new BoardStore(boards, () => void this.persistBoards());
+      this.refreshViews();
+    } catch (err: unknown) {
+      // Surface load failures to the user — otherwise the placeholder store
+      // sticks around silently and they see an empty board with no explanation.
+      new Notice(`Obsidban: failed to load boards — ${extractErrorMessage(err)}`, 6000);
+    }
   }
 
   /** Write board data to the vault file so S3sync can sync it. */
   private async persistBoards(): Promise<void> {
     const path = this.settings.dataFilePath;
 
-    // HIGH-1: reject path traversal or absolute paths before any adapter call
+    // Reject path traversal or absolute paths before any adapter call.
     if (!isSafeVaultPath(path)) {
       new Notice("Obsidban: data file path is invalid — check settings.", 6000);
       return;
@@ -127,14 +133,15 @@ export default class KanbanPlugin extends Plugin {
   private async readVaultFile(): Promise<KanbanVaultData["boards"]> {
     const path = this.settings.dataFilePath;
 
-    // HIGH-1: reject traversal before hitting the adapter
+    // Reject traversal before hitting the adapter.
     if (!isSafeVaultPath(path)) return [];
 
     try {
       if (!(await this.app.vault.adapter.exists(path))) return [];
       const raw = JSON.parse(await this.app.vault.adapter.read(path)) as Partial<KanbanVaultData>;
 
-      // HIGH-2 + MEDIUM-1: validate structure and deep-clone to prevent prototype pollution
+      // Validate structure and deep-clone to prevent prototype pollution from
+      // untrusted JSON (e.g. crafted via the vault sync).
       if (!Array.isArray(raw.boards)) return [];
       return migrateBoards(structuredClone(raw.boards));
     } catch {

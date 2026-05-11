@@ -32,7 +32,7 @@ export class KanbanSettingTab extends PluginSettingTab {
           .onChange(async (v) => {
             const trimmed = v.trim();
             if (!trimmed) return;
-            // HIGH-1: reject absolute paths and traversal segments
+            // Reject absolute paths and traversal segments before persisting.
             if (!isSafeVaultPath(trimmed)) {
               new Notice("Invalid path — must be vault-relative (no leading slash or traversal).", 5000);
               return;

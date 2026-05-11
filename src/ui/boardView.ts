@@ -1,7 +1,7 @@
 import { ItemView, Menu, Notice, WorkspaceLeaf, setIcon } from "obsidian";
 import type KanbanPlugin from "../main";
 import type { Board, Card, Column } from "../types";
-import { isSafeColor } from "../utils";
+import { isOverdue, isSafeColor } from "../utils";
 import { CardModal } from "./cardModal";
 import { AddColumnModal, ConfirmModal, NewBoardModal, RenameBoardModal, SetColumnColorModal } from "./boardModal";
 
@@ -176,7 +176,8 @@ export class KanbanBoardView extends ItemView {
     this.attachColumnDropHandlers(colEl, boardId, col);
 
     const colHeader = colEl.createDiv({ cls: "kanban-column-header", attr: { draggable: "true" } });
-    // MEDIUM-4: validate color from vault JSON before injecting into style.
+    // Validate the colour from vault JSON before injecting into a style
+    // property — guards against CSS injection from untrusted sync sources.
     if (col.color && isSafeColor(col.color)) colHeader.style.borderTopColor = col.color;
 
     colHeader.addEventListener("dragstart", (e) => {
@@ -321,10 +322,9 @@ export class KanbanBoardView extends ItemView {
     }
 
     if (this.plugin.settings.showDueDates && card.dueDate) {
-      const due   = new Date(card.dueDate);
-      const today = new Date(new Date().toDateString());
+      const due = new Date(card.dueDate);
       cardEl.createSpan({
-        cls:  `kanban-card-due${due < today ? " kanban-card-due--overdue" : ""}`,
+        cls:  `kanban-card-due${isOverdue(card.dueDate) ? " kanban-card-due--overdue" : ""}`,
         text: due.toLocaleDateString(undefined, { day: "2-digit", month: "short" }),
       });
     }
