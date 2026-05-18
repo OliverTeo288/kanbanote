@@ -39,7 +39,7 @@ export class KanbanSettingTab extends PluginSettingTab {
             }
             this.plugin.settings.dataFilePath = trimmed;
             await this.plugin.saveSettings();
-            new Notice("Obsidban: data file path updated. Reload the plugin to apply.", 5000);
+            new Notice("Kanbanote: data file path updated. Reload the plugin to apply.", 5000);
           })
       );
 

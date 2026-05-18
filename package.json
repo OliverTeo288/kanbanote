@@ -1,5 +1,5 @@
 {
-  "name": "obsidian-kanban",
+  "name": "kanbanote",
   "version": "1.0.6",
   "description": "Kanban board plugin for Obsidian — boards, columns, and cards like Trello/Jira",
   "engines": {

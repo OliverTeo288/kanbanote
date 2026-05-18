@@ -1,8 +1,8 @@
-# Obsidban
+# Kanbanote
 
 A Jira/Trello-style Kanban board as an Obsidian panel view. Organise work into boards, columns, and cards — fully local, no external services.
 
-![CI](https://github.com/OliverTeo288/obsidban/actions/workflows/ci-release.yml/badge.svg)
+![CI](https://github.com/OliverTeo288/kanbanote/actions/workflows/ci-release.yml/badge.svg)
 
 ---
 
@@ -38,8 +38,8 @@ This plugin is not yet published to the Obsidian Community Plugins list. Install
 ### 1 — Clone and build
 
 ```bash
-git clone https://github.com/OliverTeo288/obsidban.git
-cd obsidban
+git clone https://github.com/OliverTeo288/kanbanote.git
+cd kanbanote
 npm install
 npm run build
 ```
@@ -62,19 +62,19 @@ Vault path resolution order if you omit the argument:
 
 ```bash
 VAULT="/path/to/your/vault"
-mkdir -p "$VAULT/.obsidian/plugins/obsidban"
-cp main.js manifest.json styles.css "$VAULT/.obsidian/plugins/obsidban/"
+mkdir -p "$VAULT/.obsidian/plugins/kanbanote"
+cp main.js manifest.json styles.css "$VAULT/.obsidian/plugins/kanbanote/"
 ```
 
 ### 3 — Enable in Obsidian
 
 1. Open **Settings → Community plugins**
 2. If you see a **Safe mode** banner, click **Turn on community plugins**
-3. Under **Installed plugins**, find **Obsidban** and toggle it **on**
+3. Under **Installed plugins**, find **Kanbanote** and toggle it **on**
 4. Close settings — the Kanban board ribbon icon appears in the left sidebar
 
 > **Plugin not showing up?**
-> - Confirm the three files exist at `<vault>/.obsidian/plugins/obsidban/`
+> - Confirm the three files exist at `<vault>/.obsidian/plugins/kanbanote/`
 > - Restart Obsidian, then check **Settings → Community plugins → Installed plugins**
 > - On macOS, if the vault is in iCloud Drive, wait for files to finish syncing before restarting
 
@@ -86,7 +86,7 @@ You can also install directly from this repo using [BRAT](https://github.com/TfT
 
 1. Install and enable the BRAT plugin from Community Plugins
 2. Run **BRAT: Add a beta plugin** from the command palette
-3. Enter: `OliverTeo288/obsidban`
+3. Enter: `OliverTeo288/kanbanote`
 
 ---
 
@@ -95,11 +95,11 @@ You can also install directly from this repo using [BRAT](https://github.com/TfT
 ### Opening the board
 
 - Click the **grid icon** in the left ribbon
-- Run **Obsidban: Open board** from the command palette (`Cmd/Ctrl + P`)
+- Run **Kanbanote: Open board** from the command palette (`Cmd/Ctrl + P`)
 
 ### Creating your first board
 
-1. Click **+ New board** in the board header, or run **Obsidban: Create new board** from the command palette
+1. Click **+ New board** in the board header, or run **Kanbanote: Create new board** from the command palette
 2. Enter a board name and click **Create**
 3. Three columns are created automatically: **To Do**, **In Progress**, **Done**
 
@@ -148,7 +148,7 @@ You can also install directly from this repo using [BRAT](https://github.com/TfT
 
 ### Settings
 
-**Settings → Obsidban**
+**Settings → Kanbanote**
 
 | Setting | Description |
 |---|---|
@@ -164,8 +164,8 @@ You can also install directly from this repo using [BRAT](https://github.com/TfT
 ### Setup
 
 ```bash
-git clone https://github.com/OliverTeo288/obsidban.git
-cd obsidban
+git clone https://github.com/OliverTeo288/kanbanote.git
+cd kanbanote
 nvm use          # switches to Node 25 via .nvmrc
 npm install
 ```

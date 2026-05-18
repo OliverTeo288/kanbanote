@@ -35,7 +35,7 @@ export default class KanbanPlugin extends Plugin {
     const ribbonEl = this.addRibbonIcon("table-2", "Open kanban board", () => {
       void this.activateView();
     });
-    ribbonEl.addClass("obsidban-ribbon");
+    ribbonEl.addClass("kanbanote-ribbon");
 
     this.addCommand({
       id: "open-kanban-board",
@@ -83,7 +83,7 @@ export default class KanbanPlugin extends Plugin {
   // ── Persistence ───────────────────────────────────────────────────────────
 
   /**
-   * Load settings from plugin storage (.obsidian/plugins/obsidban/data.json)
+   * Load settings from plugin storage (.obsidian/plugins/kanbanote/data.json)
    * then load boards from the vault data file (kanban/boards.json by default).
    * Replaces the placeholder store created in onload() and re-renders any
    * open views so they pick up the loaded data.
@@ -102,7 +102,7 @@ export default class KanbanPlugin extends Plugin {
     } catch (err: unknown) {
       // Surface load failures to the user — otherwise the placeholder store
       // sticks around silently and they see an empty board with no explanation.
-      new Notice(`Obsidban: failed to load boards — ${extractErrorMessage(err)}`, 6000);
+      new Notice(`Kanbanote: failed to load boards — ${extractErrorMessage(err)}`, 6000);
     }
   }
 
@@ -112,7 +112,7 @@ export default class KanbanPlugin extends Plugin {
 
     // Reject path traversal or absolute paths before any adapter call.
     if (!isSafeVaultPath(path)) {
-      new Notice("Obsidban: data file path is invalid — check settings.", 6000);
+      new Notice("Kanbanote: data file path is invalid — check settings.", 6000);
       return;
     }
 
@@ -125,7 +125,7 @@ export default class KanbanPlugin extends Plugin {
       const payload: KanbanVaultData = { boards: this.store.getBoards() };
       await this.app.vault.adapter.write(path, JSON.stringify(payload, null, 2));
     } catch (err: unknown) {
-      new Notice(`Obsidban: failed to save boards — ${extractErrorMessage(err)}`, 6000);
+      new Notice(`Kanbanote: failed to save boards — ${extractErrorMessage(err)}`, 6000);
     }
   }
 

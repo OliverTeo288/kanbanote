@@ -56,7 +56,7 @@ export const DEFAULT_SETTINGS: KanbanSettings = {
   dataFilePath: "kanban/boards.json",
 };
 
-/** Stored in .obsidian/plugins/obsidban/data.json — NOT synced. */
+/** Stored in .obsidian/plugins/kanbanote/data.json — NOT synced. */
 export interface KanbanPluginData {
   settings: KanbanSettings;
 }
