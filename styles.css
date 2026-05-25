@@ -606,11 +606,27 @@
   font-size: 0.87rem;
   color: var(--text-normal);
   line-height: 1.4;
+  cursor: text;
+  padding: 2px 4px;
+  border-radius: 3px;
+  transition: background-color 0.1s;
+}
+
+.kanban-checklist-text:hover {
+  background-color: var(--background-modifier-hover);
 }
 
 .kanban-checklist-item--done .kanban-checklist-text {
   text-decoration: line-through;
   color: var(--text-muted);
+}
+
+/* Inline edit input takes the place of .kanban-checklist-text — matches its size. */
+.kanban-checklist-edit-input {
+  flex: 1;
+  font-size: 0.87rem;
+  line-height: 1.4;
+  padding: 2px 4px;
 }
 
 .kanban-checklist-del {

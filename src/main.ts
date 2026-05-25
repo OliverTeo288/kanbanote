@@ -157,8 +157,16 @@ export default class KanbanPlugin extends Plugin {
 }
 
 /**
- * One-time forward migration: convert old single-string `assignee` field to `assignees` array.
- * Safe to run on already-migrated data (Array.isArray guard is a no-op).
+ * Forward migration + defensive defaults for cards loaded from disk.
+ *
+ * Two responsibilities:
+ * 1. Convert legacy fields (`assignee` → `assignees[]`, `linkedNote` → `attachments[]`)
+ *    so old vault data keeps working after schema changes.
+ * 2. Fill in any missing array fields with `[]`. Hand-edited JSON often
+ *    omits empty arrays; without these defaults the renderer crashes on
+ *    `card.checklist.length` etc.
+ *
+ * Idempotent — safe to run on already-migrated data.
  */
 function migrateBoards(boards: Board[]): Board[] {
   for (const board of boards) {
@@ -166,13 +174,19 @@ function migrateBoards(boards: Board[]): Board[] {
       for (const card of col.cards) {
         const legacy = card as Card & { assignee?: string; linkedNote?: string };
 
-        // Migrate single assignee string → assignees array
+        // Legacy: single assignee string → assignees array.
         if (!Array.isArray(card.assignees)) {
           card.assignees = legacy.assignee ? [legacy.assignee] : [];
           delete legacy.assignee;
         }
 
-        // Migrate linkedNote → attachments (prepend so it stays visible)
+        // Defensive defaults: array fields the renderer assumes always exist.
+        if (!Array.isArray(card.tags))        card.tags        = [];
+        if (!Array.isArray(card.checklist))   card.checklist   = [];
+        if (!Array.isArray(card.attachments)) card.attachments = [];
+        if (!Array.isArray(card.activity))    card.activity    = [];
+
+        // Legacy: linkedNote → attachments (prepend so it stays visible).
         if (legacy.linkedNote) {
           if (!card.attachments.includes(legacy.linkedNote)) {
             card.attachments.unshift(legacy.linkedNote);

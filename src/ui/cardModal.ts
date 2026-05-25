@@ -283,7 +283,12 @@ export class CardModal extends Modal {
         this.updateChecklistProgress();
       });
 
-      row.createSpan({ cls: "kanban-checklist-text", text: item.text });
+      const textEl = row.createSpan({
+        cls: "kanban-checklist-text",
+        text: item.text,
+        attr: { title: "Click to edit" },
+      });
+      textEl.addEventListener("click", () => this.editChecklistItem(item, textEl));
 
       const delBtn = row.createEl("button", { cls: "kanban-icon-btn kanban-checklist-del", title: "Remove" });
       setIcon(delBtn, "x");
@@ -293,6 +298,43 @@ export class CardModal extends Modal {
         this.updateChecklistProgress();
       });
     }
+  }
+
+  /**
+   * Swaps a checklist item's text span for an input, commits on Enter or blur,
+   * and reverts on Escape. Empty / whitespace-only values are discarded
+   * (the item keeps its original text).
+   */
+  private editChecklistItem(item: ChecklistItem, textEl: HTMLElement): void {
+    const input = createEl("input", {
+      cls: "kanban-inline-input kanban-checklist-edit-input",
+      value: item.text,
+    });
+    textEl.replaceWith(input);
+    input.focus();
+    input.select();
+
+    // Prevents double-commit when Enter triggers blur immediately after.
+    let committed = false;
+
+    const commit = () => {
+      if (committed) return;
+      committed = true;
+      const val = input.value.trim();
+      if (val) item.text = val;
+      this.renderChecklistItems();
+    };
+
+    const cancel = () => {
+      committed = true;
+      this.renderChecklistItems();
+    };
+
+    input.addEventListener("blur", commit);
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter")  { e.preventDefault(); commit(); }
+      if (e.key === "Escape") { e.preventDefault(); cancel(); }
+    });
   }
 
   /** Updates the heading text and progress bar fill without re-rendering checklist items. */
